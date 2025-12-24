@@ -19,6 +19,7 @@ const SONIC_NETWORK_PARAMS = {
 
 interface WalletContextType {
   account: string | null;
+  balance: string | null;
   chainId: string | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
@@ -31,6 +32,7 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
 
@@ -48,10 +50,35 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           setAccount(accounts[0]);
         } else {
           setAccount(null);
+          setBalance(null);
         }
       });
     }
   }, []);
+
+  // Fetch balance whenever account or chainId changes
+  useEffect(() => {
+    if (account && !isWrongNetwork) {
+      fetchBalance(account);
+    } else {
+      setBalance(null);
+    }
+  }, [account, chainId]);
+
+  const fetchBalance = async (address: string) => {
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      try {
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        const balanceBigInt = await provider.getBalance(address);
+        const balanceFormatted = ethers.formatEther(balanceBigInt);
+        // Format to 4 decimal places
+        const formatted = parseFloat(balanceFormatted).toFixed(4);
+        setBalance(formatted);
+      } catch (err) {
+        console.error("Error fetching balance:", err);
+      }
+    }
+  };
 
   const checkIfWalletIsConnected = async () => {
     if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -122,6 +149,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const disconnectWallet = () => {
     setAccount(null);
+    setBalance(null);
   };
 
   const isWrongNetwork = chainId !== null && chainId !== SONIC_CHAIN_ID;
@@ -130,6 +158,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     <WalletContext.Provider
       value={{
         account,
+        balance,
         chainId,
         connectWallet,
         disconnectWallet,
