@@ -17,8 +17,6 @@ export default function NFTPage() {
   const [isTransferring, setIsTransferring] = useState(false);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
 
-  // View Modal State
-  const [viewNft, setViewNft] = useState<any | null>(null);
 
   useEffect(() => {
     async function fetchNFTs() {
