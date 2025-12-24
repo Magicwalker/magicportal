@@ -1,9 +1,7 @@
 ﻿"use client";
 
 import { useWallet } from "../context/WalletContext";
-import WalletConnect from "../components/WalletConnect";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 
@@ -128,28 +126,12 @@ export default function NFTPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <div className="absolute top-6 right-6 z-50">
-        <WalletConnect />
-      </div>
-
-      <main className="container mx-auto px-4 py-24">
+    <div className="min-h-screen">
+      <main className="container mx-auto px-4 py-12">
         <div className="mb-8">
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 rounded-lg text-black dark:text-white transition-colors mb-4 font-medium"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Home
-          </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-black dark:text-white">Your Collection</h1>
-              <p className="text-zinc-600 dark:text-zinc-400 mt-2">
-                View and manage your Sonic Network NFTs.
-              </p>
+              <h1 className="text-4xl font-bold text-black dark:text-white">NFTs</h1>
             </div>
             
             {/* Bulk Transfer Controls */}
@@ -195,7 +177,7 @@ export default function NFTPage() {
         {!account ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-4">
-              Please connect your wallet to view your NFTs.
+              Please connect your wallet in the sidebar to view your NFTs.
             </p>
           </div>
         ) : loading ? (
@@ -243,22 +225,7 @@ export default function NFTPage() {
                     </div>
                   </div>
 
-                  {/* View Button - Click to Open Modal */}
-                  <div className="absolute top-2 right-2 z-20">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setViewNft(nft);
-                      }}
-                      className="bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition-colors"
-                      title="View Details"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </button>
-                  </div>
+
 
                   <div className="relative h-48 w-full bg-black flex items-center justify-center">
                     {nft.image ? (
@@ -278,6 +245,7 @@ export default function NFTPage() {
                     <p className="text-[10px] text-zinc-400 font-mono mt-1 truncate" title={nft.contractAddress}>
                       {nft.contractAddress}
                     </p>
+                    <span>{nft.tokenId}</span>
                   </div>
                 </div>
               );
@@ -286,51 +254,6 @@ export default function NFTPage() {
         )}
       </main>
 
-      {/* NFT View Modal */}
-      {viewNft && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setViewNft(null)}>
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-zinc-200 dark:border-zinc-800" onClick={e => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-black dark:text-white">{viewNft.name}</h2>
-                <button onClick={() => setViewNft(null)} className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              
-              <div className="relative w-full h-[400px] bg-black rounded-xl mb-6 flex items-center justify-center overflow-hidden">
-                 {viewNft.image ? (
-                    <Image
-                      src={viewNft.image}
-                      alt={viewNft.name}
-                      fill
-                      className="object-contain"
-                      unoptimized={viewNft.image.startsWith('data:')} 
-                    />
-                  ) : (
-                    <div className="text-zinc-500">No Image Available</div>
-                  )}
-              </div>
-
-              <div className="space-y-4">
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Contract Addr</h3>
-                    <p className="text-black dark:text-white font-mono text-sm break-all mt-1">{viewNft.contractAddress}</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Token ID</h3>
-                    <p className="text-black dark:text-white font-mono text-sm mt-1">{viewNft.tokenId}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
