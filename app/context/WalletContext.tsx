@@ -3,18 +3,22 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { ethers } from "ethers";
 
-// Sonic Network Configuration
-const SONIC_CHAIN_ID = "0x92"; // 146 in hex
-const SONIC_NETWORK_PARAMS = {
-  chainId: SONIC_CHAIN_ID,
-  chainName: "Sonic Network",
-  nativeCurrency: {
-    name: "Sonic",
-    symbol: "S",
-    decimals: 18,
+// Network Configurations
+export const NETWORKS = {
+  SONIC: {
+    chainId: "0x92", // 146
+    chainName: "Sonic Network",
+    nativeCurrency: { name: "Sonic", symbol: "S", decimals: 18 },
+    rpcUrls: ["https://rpc.soniclabs.com"],
+    blockExplorerUrls: ["https://explorer.soniclabs.com"],
   },
-  rpcUrls: ["https://rpc.soniclabs.com"],
-  blockExplorerUrls: ["https://explorer.soniclabs.com"],
+  AVAX: {
+    chainId: "0xa86a", // 43114
+    chainName: "Avalanche C-Chain",
+    nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
+    rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],
+    blockExplorerUrls: ["https://snowtrace.io"],
+  }
 };
 
 interface WalletContextType {
@@ -23,8 +27,8 @@ interface WalletContextType {
   chainId: string | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  switchNetwork: () => Promise<void>;
-  isWrongNetwork: boolean;
+  switchNetwork: (targetChainId: string) => Promise<void>;
+  currentNetwork: typeof NETWORKS.SONIC | typeof NETWORKS.AVAX | null;
   error: string | null;
 }
 
@@ -58,7 +62,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // Fetch balance whenever account or chainId changes
   useEffect(() => {
-    if (account && !isWrongNetwork) {
+    if (account) {
       fetchBalance(account);
     } else {
       setBalance(null);
@@ -71,7 +75,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const provider = new ethers.BrowserProvider((window as any).ethereum);
         const balanceBigInt = await provider.getBalance(address);
         const balanceFormatted = ethers.formatEther(balanceBigInt);
-        // Format to 4 decimal places
         const formatted = parseFloat(balanceFormatted).toFixed(4);
         setBalance(formatted);
       } catch (err) {
@@ -97,27 +100,30 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const switchNetwork = async () => {
+  const switchNetwork = async (targetChainId: string) => {
     if (typeof window !== "undefined" && (window as any).ethereum) {
       try {
         await (window as any).ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: SONIC_CHAIN_ID }],
+          params: [{ chainId: targetChainId }],
         });
       } catch (switchError: any) {
         if (switchError.code === 4902) {
-          try {
-            await (window as any).ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [SONIC_NETWORK_PARAMS],
-            });
-          } catch (addError) {
-            console.error("Error adding Sonic network:", addError);
-            setError("Failed to add Sonic network.");
+          const targetNetwork = Object.values(NETWORKS).find(n => n.chainId === targetChainId);
+          if (targetNetwork) {
+            try {
+              await (window as any).ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [targetNetwork],
+              });
+            } catch (addError) {
+              console.error("Error adding network:", addError);
+              setError("Failed to add network.");
+            }
           }
         } else {
           console.error("Error switching network:", switchError);
-          setError("Failed to switch to Sonic network.");
+          setError("Failed to switch network.");
         }
       }
     }
@@ -134,8 +140,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const network = await provider.getNetwork();
         const currentChainId = "0x" + network.chainId.toString(16);
         
-        if (currentChainId !== SONIC_CHAIN_ID) {
-            await switchNetwork();
+        // Default to Sonic if not on a supported chain
+        if (currentChainId !== NETWORKS.SONIC.chainId && currentChainId !== NETWORKS.AVAX.chainId) {
+            await switchNetwork(NETWORKS.SONIC.chainId);
         }
         
       } catch (err: any) {
@@ -152,7 +159,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setBalance(null);
   };
 
-  const isWrongNetwork = chainId !== null && chainId !== SONIC_CHAIN_ID;
+  const currentNetwork = 
+    chainId === NETWORKS.SONIC.chainId ? NETWORKS.SONIC :
+    chainId === NETWORKS.AVAX.chainId ? NETWORKS.AVAX : null;
 
   return (
     <WalletContext.Provider
@@ -163,7 +172,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         connectWallet,
         disconnectWallet,
         switchNetwork,
-        isWrongNetwork,
+        currentNetwork,
         error,
       }}
     >

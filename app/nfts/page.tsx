@@ -17,7 +17,6 @@ export default function NFTPage() {
   const [isTransferring, setIsTransferring] = useState(false);
   const [transferStatus, setTransferStatus] = useState<string | null>(null);
 
-
   useEffect(() => {
     async function fetchNFTs() {
       if (!account) {
@@ -223,8 +222,6 @@ export default function NFTPage() {
                     </div>
                   </div>
 
-
-
                   <div className="relative h-48 w-full bg-black flex items-center justify-center">
                     {nft.image ? (
                       <Image
@@ -251,7 +248,6 @@ export default function NFTPage() {
           </div>
         )}
       </main>
-
     </div>
   );
 }
