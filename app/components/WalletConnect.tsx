@@ -9,8 +9,7 @@ export default function WalletConnect() {
     connectWallet, 
     disconnectWallet, 
     switchNetwork, 
-    isWrongNetwork, 
-    error 
+    error
   } = useWallet();
 
   const formatAddress = (address: string) => {
@@ -30,14 +29,7 @@ export default function WalletConnect() {
       ) : (
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-2">
-             {isWrongNetwork ? (
-                <button
-                  onClick={switchNetwork}
-                  className="rounded-full bg-yellow-500 px-3 py-1 text-xs text-black font-semibold hover:bg-yellow-600 mr-2"
-                >
-                  Wrong Network
-                </button>
-              ) : (
+
                  <div className="mr-2 relative w-6 h-6" title="Connected to Sonic Network">
                     <Image 
                       src="/s.png" 
@@ -46,7 +38,7 @@ export default function WalletConnect() {
                       className="object-contain"
                     />
                  </div>
-              )}
+
               
               <p className="text-sm font-mono bg-zinc-100 dark:bg-zinc-800 px-4 py-2 rounded-lg">
                 {formatAddress(account)}

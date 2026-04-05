@@ -20,15 +20,16 @@ export async function GET(request: NextRequest) {
   }
 
   const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-  
+
   if (!ETHERSCAN_API_KEY) {
      return NextResponse.json({ error: "API Key not configured" }, { status: 500 });
   }
 
   try {
     // 1. Fetch Transfer History
-    const etherscanUrl = `https://api.etherscan.io/v2/api?chainid=146&module=account&action=tokennfttx&address=${address}&apikey=${ETHERSCAN_API_KEY}&sort=asc&offset=10000`;
-    
+     const etherscanUrl = `https://api.etherscan.io/v2/api?chainid=146&module=account&action=tokennfttx&address=${address}&apikey=${ETHERSCAN_API_KEY}&sort=asc&offset=10000`;
+    //  const etherscanUrl = `https://api.etherscan.io/v2/api?chainid=146&module=account&action=tokennfttx&address=${address}&apikey=1M6QBA9M6I9MM5AVZCARF8JVJZWRC18WRW&sort=asc&offset=10000`;
+
     const response = await fetch(etherscanUrl);
     const data = await response.json();
 
